@@ -38,7 +38,7 @@ dinamikus model: model(ModelID,D,Preds,Names,I).
 			splitSettoN/3,splitSettoN/4
 			]).
 
-:- use_module(inqsemModel,[exmodel/4]).
+%:- use_module(inqsemModel,[exmodel/4]).
 
 :- use_module(modelChecker3,[evaluate/3,lambdaX/4]). 
 
@@ -122,9 +122,9 @@ changeEchoStatus:-
 **********************************/
 
 % megadott nevû modell beolvasása a modellfájlból 
-createModel(ModelName):-
-	exmodel(ModelName,D,P,N),
-	createModel(ModelName,D,P,N).
+% createModel(ModelName):-
+	% exmodel(ModelName,D,P,N),
+	% createModel(ModelName,D,P,N).
 
 % createModel(ModelName, D, N)
 %  D : az individuumok halmaza, pl: [j,p,r]
