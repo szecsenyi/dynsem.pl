@@ -1,5 +1,5 @@
 # dynsem.pl
-v 1.1 Szécsényi Tibor 2022
+v1.1 Szécsényi Tibor 2022
 
 Dinamikus szemantikai modellek építése, amely modellek több 
 interpretációs világot tartalmaznak, és a diskurzus során 
