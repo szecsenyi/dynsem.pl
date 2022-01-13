@@ -1,4 +1,4 @@
-/*************************************************************************
+Ôªø/*************************************************************************
 
     File: comsemPredicates.pl
     Copyright (C) 2004,2005,2006 Patrick Blackburn & Johan Bos
@@ -372,10 +372,10 @@ printExtensions([X|L]):-
    printExtensions(L).
 
 /*========================================================================
-   Extensions by Tibor szÈcsÈnyi
+   Extensions by Tibor sz√©cs√©nyi
 
    sublist(X,Y)		Az X lista elemei (ugyanolyan sorrendben) 
-					megtal·hatÛak-e Y-ban?
+					megtal√°hat√≥ak-e Y-ban?
 ========================================================================*/
 
 sublist([],_).
@@ -404,7 +404,7 @@ cartesianProduct(A,B,AxB):-
 
 
 /*========================================================================
-	Descartes-szorzat : rendezett h·rmasokat csin·l
+	Descartes-szorzat : rendezett h√°rmasokat csin√°l
 ========================================================================*/
 
 cartesianProduct2(A,BxC,AxBxC):-

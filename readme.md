@@ -1,26 +1,28 @@
-# dynsem.pl 
+# dynsem.pl
+v 1.1 Szécsényi Tibor 2022
 
 Dinamikus szemantikai modellek építése, amely modellek több 
 interpretációs világot tartalmaznak, és a diskurzus során 
 megfogalmazott új információk, logikai kifejezések leszűkítik 
 az interpretációs világok halmazát. 
 
-* A program részei, futtatás
-* A dinamikus modellreprezentácó
-* A használható parancsok leírása
+* [A program részei, futtatás](#a-program-reszei-futtatas)
+* [Dinamikus modellreprezentáció](#a-dinamikus-modellreprezentacio)
+* [A használható parancsok leírása](#a-hasznalhato-parancsok-leirasa)
+
+<a id="a-program-reszei-futtatas"></a>
 
 # A program részei, futtatás
 A program Prolog nyelven íródott, kipróbálva 
 az [SWI-Prolog](https://www.swi-prolog.org/) 8.0.1 verzióján lett. 
 
-A program három fájlból áll. A *modellChecker3.pl* és a *comsemPredicates.pl* 
+A program öt fájlból áll. A *modellChecker3.pl* és a *comsemPredicates.pl* 
 fájlok [Patrick Blackburn és Johan Bos *Representation and Inference for 
 Natural Language. A First Course in Computational Semantics*](http://www.let.rug.nl/bos/comsem/book1.html) 
-című könyvéhez tartozó programkönyvtár két darabjának kibővített változata, 
-a harmadik pedig fájl pedig maga a főprogram, a *dynsem.pl*. 
-A programcsomaghoz tartozik még az *examples.pl* nevű, példamodelleket 
-tartalmazó fájl is. 
-TODO
+című könyvéhez tartozó programkönyvtár két darabjának kibővített változata. 
+A *dynsem.pl* maga a főprogram. A *model2tsv.pl* és a *model2xm.pl* a létrehozott modellek 
+lemezre írását és lemezről való beolvasását végzik.
+
 
 A program futtatása a *dynsem.pl* fájlnak az SWI-Prolog értelmezőbe való 
 betöltésével történik. A parancsokat a prolog értelmezőben megjelenő `?-` 
@@ -30,15 +32,15 @@ A beírt parancsokat a `.` jel beírásával kell zárni, majd entert nyomni.
 ```
 ?- createModel(beatles, [john, paul, ringo], []).
 ...
-?- addNewPredicate(model:beatles, boy, 1), writeWorlds.
+?- addNewPredicate(hungry, 1), writeWorlds.
 ```
 
 A parancsok megadását először egy dinamikus szemantikai modell létrehozásával 
 célszerű kezdeni (pl.: `createModel(beatles, [john, paul, ringo], [])`), 
 majd új nevek, predikátumok bevezetésével 
-(pl.: `addNewPredicate(model:beatles, boy, 1)`), 
+(pl.: `addNewPredicate(hungry, 1)`), 
 illetve a világra vonatkozó új információk megadásával lehet folytatni (pl.: 
-`and(beatles, boy(john))`. 
+`and(beatles, hungry(john))`. 
 Új predikátumok bevezetésével növelhetjük, új információk megadásával 
 csökkenthetjük az interpretációs világok számát. 
 Eközben megjeleníthetjük a modellt, vagyis az interpretációs világokat 
@@ -46,26 +48,29 @@ a `writeWorlds` paranccsal.
 
 ```
 ?- createModel(beatles, [john, paul, ringo], []).
+Model beatles has been created.
 There is only 1 world in model beatles.
 true .
 
-?- addNewPredicate(model:beatles, boy, 1), writeWorlds.
+?- addNewPredicate(hungry, 1), writeWorlds.
+Predicate hungry is added to model beatles.
 There are 8 worlds in model beatles.
 There are 8 worlds in model beatles.
 john --> john
 paul --> paul
 ringo --> ringo
-index(i7): boy=[ringo], beatles=[john,paul,ringo], 
-index(i6): boy=[paul,ringo], beatles=[john,paul,ringo], 
-index(i5): boy=[paul], beatles=[john,paul,ringo], 
-index(i4): boy=[john,ringo], beatles=[john,paul,ringo], 
-index(i3): boy=[john,paul,ringo], beatles=[john,paul,ringo], 
-index(i2): boy=[john,paul], beatles=[john,paul,ringo], 
-index(i1): boy=[john], beatles=[john,paul,ringo], 
-index(i0): boy=[], beatles=[john,paul,ringo], 
+index(i7): hungry=[ringo], beatles=[john,paul,ringo], 
+index(i6): hungry=[paul,ringo], beatles=[john,paul,ringo], 
+index(i5): hungry=[paul], beatles=[john,paul,ringo], 
+index(i4): hungry=[john,ringo], beatles=[john,paul,ringo], 
+index(i3): hungry=[john,paul,ringo], beatles=[john,paul,ringo], 
+index(i2): hungry=[john,paul], beatles=[john,paul,ringo], 
+index(i1): hungry=[john], beatles=[john,paul,ringo], 
+index(i0): hungry=[], beatles=[john,paul,ringo], 
 true .
 
-?- and(beatles, boy(john)).
+?- and(beatles, hungry(john)).
+"hungry(john)" has been asserted in model beatles.
 There are 4 worlds in model beatles.
 true.
 
@@ -74,26 +79,30 @@ There are 4 worlds in model beatles.
 john --> john
 paul --> paul
 ringo --> ringo
-index(i4): boy=[john,ringo], beatles=[john,paul,ringo], 
-index(i3): boy=[john,paul,ringo], beatles=[john,paul,ringo], 
-index(i2): boy=[john,paul], beatles=[john,paul,ringo], 
-index(i1): boy=[john], beatles=[john,paul,ringo], 
+index(i4): hungry=[john,ringo], beatles=[john,paul,ringo], 
+index(i3): hungry=[john,paul,ringo], beatles=[john,paul,ringo], 
+index(i2): hungry=[john,paul], beatles=[john,paul,ringo], 
+index(i1): hungry=[john], beatles=[john,paul,ringo], 
 true.
 
 ?-
 ```
 
+<a id="a-dinamikus-modellreprezentacio"></a>
+
 # A dinamikus modellreprezentáció
 A modellek öt részből állnak: `model(ModelID,D,Preds,Names,I)`
-- `ModelID`: a modell azonosítója vagy neve - atom
-- `D`: a modellben található individuumok halmaza, modelluniverzum - lista
-- `Preds`: a modellben használható predikátumok nevei és argumentumszáma - lista
-- `Names`: a modellben használható nevek és azok denotátuma (mely individuumra utal) - lista
-- `I`: a modellben lehetséges interpretációs világok, 'indexek' - lista
+- [`ModelID`: a modell azonosítója vagy neve](#modelid) - atom
+- [`D`: a modellben található individuumok halmaza, modelluniverzum](#individuumok-d) - lista
+- [`Preds`: a modellben használható predikátumok nevei és argumentumszáma](#predikatumok-preds) - lista
+- [`Names`: a modellben használható nevek és azok denotátuma (mely individuumra utal)](#nevek-names) - lista
+- [`I`: a modellben lehetséges interpretációs világok, 'indexek'](#indexek) - lista
 
 A modell azonosítója és az individuumok halmaza a modell létrehozása 
 után nem változtatható, a predikátumok és nevek listája viszont bővíthető. 
 Az indexek automatikusan változnak, explicit módosításuk nem lehetséges. 
+
+<a id="modelid"></a>
 
 ### Modellazonosító: ModelID
 A modell azonosítója tetszőleges prolog atom lehet: kis betűvel kezdődő, 
@@ -123,6 +132,8 @@ Egy modell létrehozásakor a modell individuumai névként is deklarálódnak.
 A modellbe a modell létrehozása után új nevek is bevezethetők: 
 [`addNewName`](#addnewname)
 
+<a id="predikatumok-preds"></a>
+
 ### Predikátumok: Preds
 A predikátumok az argumentumuk számával rendezett párt alkotva listaként 
 vannak megadva, pl.: `[[name1, 0], [name2, 0], [pred1, 1], [pred2, 1], [pred3,2]]` 
@@ -130,15 +141,18 @@ A modell létrehozásakor a modell nevével megegyező nevű egyargumentumú
 predikátum is deklarálódik, amelynek a denotátuma a modell összes individuumát 
 tartalmazza minden egyes interpretációs világban. 
 A program egy-, két és háromargumentumú predikátumokat tud kezelni. 
-A már deklarált predikátumok nem törölhetőek, de újak deklarálhatóak: 
+A már deklarált predikátumok a [`renamePredicate`](#renamepredicate)  paranccsal 
+átnevezhetők vagy a [`deletePredicate`](#deletepredicate) törölhetők, 
+de újakat is hozhatunk létre: 
 [`addNewPredicate`](#addnewpredicate), 
 [`addNewOrdering`](#addnewordering), 
 [`addNewClassifier`](#addnewclassifier) 
 
+<a id="indexek"></a>
 ### Interpretációs világok: I
 Egy modellhez tartozó interpretációs világok vagy indexek listaként vannak megadva. 
 Az egyes indexek `index(Num, ID, Interperations)` információhármassal 
-vannak jellemezve: az első az indexvilágnaknek a sorszáma (automatikusan számozott), 
+vannak jellemezve: az első az indexvilágnak a sorszáma (automatikusan számozott), 
 a másik az indexnek az egyedi azonosítója (automatikusan generált, 'i' + NUM alakú), 
 végül a harmadik a modellben szereplő predikátumok indexbeli interpretációját adja meg. 
 A predikátumok interpretációi `f(ArgNum, PredName, Den)` alakban megadott kifejezések 
@@ -156,66 +170,85 @@ tartalmazza minden egyes interpretációs világban.
  ...]
 ```
 Az interpretációs világok, az indexek a program használata során automatikusan 
-jönnek létre.
+jönnek létre. Egy világ tartalma a [`writeWorld`](#writeworld) paranccsal jeleníthető meg.
+
+<a id="a-hasznalhato-parancsok-leirasa"></a>
 
 # A használható parancsok leírása
-* Modellek létrehozása, egyesítése és törlése, lekérdezése
-* Új név bevezetése a modellbe
-* Új predikátum bevezetése a modellbe
-* Logikai formula kiértékelése egy modellben
-* Használható logikai kifejezések
+* [Modellek létrehozása, egyesítése és törlése, lekérdezése](#modellmuveletek)
+* [Új név bevezetése a modellbe](#uj-nev)
+* [Predikátumok kezelése](#uj-predikatum)
+* [Logikai formula kiértékelése egy modellben](#kiertekeles)
+* [Használható logikai kifejezések](#logikai-kifejezesek)
+
+<a id="modellmuveletek"></a>
 
 ## Modellek létrehozása, egyesítése és törlése, lekérdezése
+
 ### createModel
-`createModel(modelName, D, Preds, Names)` 
+```
+createModel(ModelName, D, Names)
+```
 
-Létrehoz egy *modelName* azonosítójú modellt *D*-ben felsorolt individuumokkal. 
-
-A *Preds* argumentumként megadhatunk egy-, két- és háromargumentumú predikátumokat 
-az argumentumszámaikkal együtt. Ha nem akarunk a modell létrehozásakor predikátumokat 
-megadni, akkor `[]` üres listát használhatunk. A modell létrehozásakor a modell 
-nevével megegyező egyargumentumú predikátum is bevezetődik.
+Létrehoz egy *ModelName* azonosítójú modellt *D*-ben felsorolt individuumokkal. 
 
 A *Names* paraméterben a modellben használandó neveket adhatjuk meg a denotátumiakkal. 
 Ha nem akarunk a modell létrehozásakor neveket megadni, akkor `[]` üres listát 
-használhatunk. A *D* individuumhalmaz elemei névként is használhatóak, de azokat 
-nem kell itt felsorolni. A nevek a modellben nullaargumentumú predikátumként lesznek 
-kezelve, de a predikátumok között nem kell felsorolni őket.
+használhatunk. A *D* individuumhalmaz elemei névként is használhatóak, azokat 
+nem kell itt felsorolni.
 
 Példák:
 ```
-createModel(beatles, [john, george, paul, ringo], [[boy,1],[hungry,1],[see,2]] [[john_lennon, john]])
-createModel(test, [a,b,c],[],[])
+createModel(beatles, [john, george, paul, ringo], [[john_lennon, john]])
+createModel(test, [a,b,c], [])
 ```
-A modell létrehozása során generálódnak az interpretációs világok, indexek, a következő módon: 
-az indexek a használt (nem nullaargumentumú) predikátumok mindegyikéhez rendelnek 
-valamilyen interpretációt. A modell nevével megegyező egyargumentumú predikátum interpretációja 
-minden indexben a *D* halmazzal egyezik meg. Az egyargumentumú predikátumok interpretációja 
-*D*-nek valamely részhalmaza lesz, a kétargumentumú predikátumok interpretációja *D*x*D* 
-valamely részhalmaza, a háromargumentumúaké pedig *D*x*D*x*D* valamely részhalmaza. 
-A különböző indexekben a predikátumok interpretációi közül legalább egy különböző, így 
-az indexek száma a lehetséges interpretációk összes lehetséges kombinációjával egyezik meg. 
-A példa *beatles* modelljében 4 individuum található, ezért az egyargumentumú predikátumoknak 
-2<sup>4</sup>, a kétargumentumú predikátumoknak pedig 2<sup>4x4</sup> különböző interpretációja 
-lehetséges, az indexek száma így 2<sup>4</sup>x2<sup>4</sup>x2<sup>4x4</sup> = 2<sup>24</sup> lesz.
+A modell létrehozásakor egyetlen interpretációs világ keletkezik, amelyben 
+csak a modell nevével megegyező nevű eyargumentumú predikátum található, 
+az interpretációja pedig a *D* individuumhalmazzal megegyező.
 
-### readModel, writeModel
-ilyen még nincs, de tervben van: fájlba ment ki, ill. abból olvas be modellt.
+### loadModel, saveModel
+```
+saveModel(FileName, ModelName) 
+saveModel(FileName)
+saveModelXml(FileName, ModelName)
+saveModelXml(FileName)
+saveModelTsv(FileName, ModelName)
+saveModelTsv(ModelName)
+loadModel(FileName)
+loadModelXml(FileName)
+loadModelTsv(FileName)
+```   
 
-TODO
+A megadott nevű modellt vagy az [aktuális modellt](#changeactualmodel) elmenti 
+a megadott nevű fájlba, vagy beolvassa annak tartalmát, és létrehoz egy új 
+modellt a fájlban megadott névvel. File-ba írás során az esetleg meglevő fájlt 
+felülírja. Beolvasás során csak akkor hozza létre a modellt, ha azzal a névvel 
+még nem volt modell.
+
+A program háromféle fájltípust kezel: az első prolog predikátumként írja és 
+olvassa a fájl tartalmát, a második XML formátumúként kezeli, a harmadik 
+pedig TSV (tab-szeparált szövegfájl) formátumúként - ez utóbbi a legkisebb 
+fájlméretű.
+
+A fájlnevet aposztrófok között, kiterjesztéssel együtt kell megadni, pl. 
+`saveModelXml('beatles.xml', beatles)`
 
 ### dropModel
-`dropModel(modelName)`
+```
+dropModel(ModelName)
+```
 
 A megadott nevű modellt "elfelejti".
 
-TODO: ha az aktuális modellt dobjuk el, mi lesz az új aktuális? null?
+Ha az aktuális modellt dobjuk el, akkor egy másik, létező modell válik aktuálissá.
 
 ### combineModels
-`combineModels(model1, model2, newModel)`
+```
+combineModels(Model1, Model2, NewModel)
+```
 
-A *model1* és a *model2* azonosítójú modelleket egyesíti egy új modellben, amelynek 
-a neve *newModel* lesz.
+A *Model1* és a *Model2* azonosítójú modelleket egyesíti egy új modellben, amelynek 
+a neve *MewModel* lesz.
 
 Az új modellben az individuumok halmaza két kombinált modell individuumainak 
 az uniója lesz (nem kell azonosnak vagy diszjunktnak lenniük).
@@ -224,7 +257,7 @@ Az új modellben a nevek a két modellben használt nevek uniója lesz az eredet
 denotátumaikkal (nem ellenőrzi, hogy a mindkét modellben szereplő neveknek 
 ugyanaz-e a denotátuma).
 
-A kombinálandó modellekben nem lehetnek azonos nevű és argumentumszámú 1-2-3 argumentumú 
+A kombinálandó modellekben nem lehetnek azonos nevű és argumentumszámú 
 predikátumok, az új modellben a predikátumok mindegyike megjelenik.
 
 Az új modellben az interpretációs világok a két modell interpretációs világainak 
@@ -232,28 +265,113 @@ a kombinációi jelennek meg, minden indexet minden másik modellbeli indexszel 
 így ha az első modell *n*, a másik pedig *m* indexet tartalmazott, az új modell *n*x*m* 
 indexből áll.
 
-Terv: meg lehetne nézni, hogy hogyan lehetne olyan modelleket kombinálni, amelyek 
-ugyanolyan predikátumokat is tartalmaznak: ekkor csak azokat az indexeket kellene 
-kombinálni, amelyekben a közös predikátumok ugyanolyan interpretációval rendelkeznek.
+Az új modellben keletkezik egy olyan egyargumentumú predikátum is, 
+amelynek minden interpretációs világban ugyanaz lesz a denotátuma: 
+az új modell individuumainak a halmaza.
 
-### actualModelName
-`actualModelName(ModelName)`
 
-Ellenőrzi, illetve lekérdezi az aktuális modell nevét, azonosítóját. 
+### copyModel
+```
+copyModel(ModelName, NewName)  
+copyModel(NewName)
+```
+
+A *ModelName* nevű modellről vagy [az aktuális modellről](#changeactualmodel) 
+készít egy másolatot *NewName* néven. Az eredei modellben levő *ModelName* 
+nevű egyargumentumú predikátum [átneveződik](#renamepredicate) *NewName* 
+névre, ezért csak akkor használható, ha korábban ilyen nevű predikátum nem 
+volt a modellben. A másolás után a másolat lesz az aktuális modell.
+
+### renameModel
+```
+renameModel(ModelName, NewName)  
+renameModel(NewName)
+```
+
+Átnevezei a *ModelName* nevű modellt vagy [az aktuális modellt](#changeactualmodel) 
+*newName* névre. Hatásában megegyezik a 
+[`copyModell(ModelName, NewName),`](#copymodel) [`dropModel(ModelName)`](#dropmodel) 
+parancskombinációval.
 
 ### changeActualModel
-`changeActuakModel(modelName)`
+```
+changeActuakModel(ModelName)
+```
 
 Kijelöli az aktuális modellt.
 
+### actualModelName
+```
+actualModelName(ModelName)
+```
+
+Ellenőrzi, illetve lekérdezi az aktuális modell nevét, azonosítóját. 
+
+### wirteWorlds
+```
+writeWorlds
+```  
+Megjeleníti az aktuális modell tulajdonságait.
+```
+?- writeWorlds.
+There are 4 worlds in model beatles.
+john --> john
+paul --> paul
+ringo --> ringo
+index(i4): hungry=[john,ringo], beatles=[john,paul,ringo], 
+index(i3): hungry=[john,paul,ringo], beatles=[john,paul,ringo], 
+index(i2): hungry=[john,paul], beatles=[john,paul,ringo], 
+index(i1): hungry=[john], beatles=[john,paul,ringo], 
+true.
+```
+
+### writeWorld
+```
+writeWorld(ID)
+```  
+Megjeleníti az aktuális model egy világának tartalmát.
+```
+?- writeWorld(i4).
+index(i4): hungry=[john,ringo], beatles=[john,paul,ringo], 
+true .
+```
+
+### writeVocabulary
+```
+writeVocabulary
+```  
+Kilistázza az aktuális modellben található predikátumokat  
+```
+?- writeVocabulary.
+[beatles,1]
+[hungry,1]
+true.
+```
+
+### writeWorldNumber
+```
+writeWorldNumber
+```  
+Kiírja az aktuális modellben található lehetséges világok számát.  
+```
+?- writeWorldNumber.
+There are 4 worlds in model beatles.
+true.
+```
+
+
+
+<a id="uj-nev"></a>
+
 ## Új név bevezetése a modellbe
+
 ### addNewName
 ```
-addNewName(modelName, name, ind)
-addNewName(name, ind)
+addNewName(Name, Ind)
 ```
-Hozzáadja a *name* nevet a megadott azonosítójú modellhez *ind* referenciával. 
-Ha nincs megadva a modell azonosítója, akkor az aktuális modellhez adja.
+Hozzáadja a *Name* nevet az aktuális modellhez *Ind* referenciával. 
+
+<a id="uj-predikatum"></a>
 
 ## Új predikátum bevezetése a modellbe
 Új egy-, két- vagy háromargumentumú predikátum bevezetése során a modell 
@@ -262,32 +380,29 @@ a predikátum típusától függően a predikátum lehetséges interpretációi
 meghatározásra kerülnek. A modellben levő interpretációs világok az új predikátum 
 lehetséges interpretációi szerint megtöbbszöröződnek.
 
-Az új predikátumlehetséges interpretációinak meghatározása történhet a modell 
+Az új predikátum lehetséges interpretációinak meghatározása történhet a modell 
 összes individuumára vonatkoztatott, vagy lehet az összes individuumának 
-egy részhalmazára leszűkített - ez utóbbi esetben meg kell adni a predikátum 
-hatókörét ("scope"). Ha például a modell az `[a,b,c,d]` individumokat tartalmazza, 
+egy részhalmazára leszűkített - ez utóbbi esetben meg kell adni [a predikátum 
+hatókörét ("scope")](#scope). Ha például a modell az `[a,b,c,d]` individumokat tartalmazza, 
 akkor egy általános egyargumentumú predikátumnak 2<sup>4</sup> különböző 
 interpretációja lehet, a modelluniverzum bármelyik részhalmaza. Ha viszont 
 a predikátum hatókörét az `[a,b,c]` részhalmazra szűkítjük le, akkor ugyanennek 
 a predikátumnak már csak 2<sup>3</sup> lehetséges interpretációja lesz. 
 
-Az `addNewPredicate` paranccsal általános predikátumokat adhatunk meg, 
-az `addNewOrdering` paranccsal kétargumentumú lineáris rendezéseket, 
-az `addNewClassifier` paranccsal pedig kétargumentumú ekvivalenciarelációkat 
+Az [`addNewPredicate`](#addnewpredicate) paranccsal általános predikátumokat adhatunk meg, 
+az [`addNewOrdering`](#addnewordering) paranccsal kétargumentumú lineáris rendezéseket, 
+az [`addNewClassifier`](#addnewclassifier) paranccsal pedig kétargumentumú ekvivalenciarelációkat 
 a hozzá tartozó egyargumentumú ekvivalenciaosztályokkal.
 
 ### addNewPredicate
 ```
-addNewPredicate(predName, argNum)
-addNewPredicate(predName, argNum, Scope)
-addNewPredicate(model:modelName, predName, argNum)
-addNewPredicate(model:modelName, predName, argNum, Scope)
+addNewPredicate(PredName, ArgNum)
+addNewPredicate(PredName, ArgNum, Scope)
 ```
 Új általános predikátum bevezetésénél mindig meg kell adni a predikátum elnevezését
-(*predName*) és az argumentumainak a számát (*argNum*), ami 1, 2 vagy 3 lehet. 
-A predikátum az aktuális modellben kerül bevezetésre (lásd: `actualModelName`), 
-más modellre vonatkozóan a `model:` prefixum után adhatjuk meg a modell azonosítóját. 
-A predikátum hatókörét a *Scope* argumentum határozza meg, az alapértelmezett 
+(*PredName*) és az argumentumainak a számát (*ArgNum*), ami 1, 2 vagy 3 lehet. 
+A predikátum az aktuális modellben kerül bevezetésre (lásd: [`actualModelName`](#actualmodelname)). 
+A predikátum [hatókörét](#scope) a *Scope* argumentum határozza meg, az alapértelmezett 
 hatókör a modelluniverzum.
 
 Új általános predikátum bevezetése során a korábbi interpretációs világok, indexek 
@@ -298,16 +413,12 @@ részhalmazai stb.
 
 ### addNewOrdering
 ```
-addNewOrdering(predName)
-addNewOrdering(predName, Scope)
-addNewOrdering(model:modelName, predName)
-addNewOrdering(model:modelName, predName, Scope)
+addNewOrdering(PredName)
+addNewOrdering(PredName, Scope)
 ```
 Új rendezés bevezetésénél csak a predikátum nevét kötelező megadni. 
-A modell, amiben bevezetésre kerül az új rendezés, alapértelmezésben 
-az aktuális modell (lásd: `actualModelName`), más modellre vonatkozóan a `model:` 
-prefixum után adhatjuk meg a modell azonosítóját.
-A predikátum hatókörét a *Scope* argumentum határozza meg, az alapértelmezett 
+Az új predikátum az aktuális modellben kerül bevezetésre (lásd: [`actualModelName`](#actualmodelname)). 
+A predikátum [hatókörét](#scope) a *Scope* argumentum határozza meg, az alapértelmezett 
 hatókör a modelluniverzum.
 A rendezések mindig kétargumentumú predikátumok, a két argumentumra ugyanaz a 
 hatóköri megszorítás érvényes.
@@ -319,28 +430,36 @@ adják.
 
 Példa (hatókör megadása nélkül):
 ```
-addNewOrdering(model:beatles, older)
+?- addNewOrdering(younger).
+Predicate younger is added to model beatles.
+There are 24 worlds in model beatles.
+true.
+
+?- writeWorld(i4).
+index(i4): younger=[[ringo,john],[ringo,paul],[john,paul]], hungry=[john,ringo], beatles=[john,paul,ringo], 
+true .
 ```
 
 ### addNewClassifier
 ```
-addNewClassifier(predName, ClassNames)
-addNewClassifier(predName, ClassNames, Scope)
-addNewClassifier(model:modelName, predName, ClassNames)
-addNewClassifier(model:modelName, predName, ClassNames, Scope)
+addNewClassifier(PredName, ClassNames)
+addNewClassifier(PredName, ClassNames, Scope)
+addNewClassifier(PredName, ClassNames, noempty)
+addNewClassifier(PredName, ClassNames, Scope, noempty)
 ```
-Új osztályozó megadásával egy új, *predName* nevű kétargumentumú 
+Új osztályozó megadásával egy új, *PredName* nevű kétargumentumú 
 ekvivalenciarelációt (reflexív, szimmetrikus, tranzitív) vezetünk be 
-a megadott modellbe: alapértelmezésben az aktuális modellbe 
-(lásd: `actualModelName`), más modellre vonatkozóan a `model:` 
-prefixum után adhatjuk meg a modell azonosítóját. Az osztályozó előre megadott 
+az aktuális modellbe (lásd: [`actualModelName`](#actualmodelname)).  
+Az osztályozó előre megadott 
 számú és nevű ekvivalenciaosztályba sorolja a hatókör elemeit. 
-Az ekvivalenciosztályok neveit a *ClassNames* listán adhatjuk meg, 
-az ekvivalenciaosztályok egyargumentumú predikátumként kerülnek bevezetésre. 
-Az osztályozó predikátum hatókörét a *Scope* argumentum határozza meg, 
-az alapértelmezett hatókör a modelluniverzum.
+Az ekvivalenciosztályok neveit a *classNames* listán adhatjuk meg, 
+az ekvivalenciaosztályok egyargumentumú predikátumként kerülnek bevezetésre.  
+Az osztályozó predikátum [hatókörét](#scope) a *Scope* argumentum határozza meg, 
+az alapértelmezett hatókör a modelluniverzum. 
 Az osztályozók mindig kétargumentumú predikátumok, a két argumentumra 
-ugyanaz a hatóköri megszorítás érvényes.
+ugyanaz a hatóköri megszorítás érvényes.  
+A `noempty` konstans megadásával jelezhetjük, hogy a létrejövő 
+ekvivalenciaosztályok nem lehetnek üresek. 
 
 Új osztályozó bevezetése során a korábbi interpretációs világok, indexek kibővülnek 
 az osztályozó lehetséges interpretációival, vagyis az indexek megtöbbszöröződnek. 
@@ -351,33 +470,78 @@ Az egyes ekvivalenciaosztályok lehetnek üres halmazok is.
 
 Példák (hatókör megadása nélkül):
 ```
-addNewClassifier(model:school, classmate, [first, second, third])
-addNewClassifier(model:people, sameSex, [female, male])
+?- addNewClassifier(sameSex, [female, male]).
+Predicate sameSex is added to model beatles.
+There are 192 worlds in model beatles.
+true.
+
+?- writeWorld(i4).
+index(i4): sameSex=[[john,john],[john,ringo],[ringo,john],[ringo,ringo],[paul,paul]], female=[john,ringo], male=[paul], younger=[[ringo,john],[ringo,paul],[paul,john]], hungry=[john,ringo], beatles=[john,paul,ringo], 
+true .
 ```
+
+### deletePredicate
+```
+deletePredicate(PredName,ArgNum)
+deletePredicate(PredName)
+```
+A megadott nevű és argumentumszámú predikátumot törli a modellből. 
+Ha nincs megadva az argumentumszám, akkor a legutoljára bevezetett predikátum 
+törlődik.
+
+A predikátum törlése során minden egyes lehetséges világból eltávolításra 
+kerül az adott predikátum, és azon lehetséges világok közül, amelyek ezután 
+megkülönböztethetetlenek, vagyis minden maradék predikátum denotátuma azonos, 
+csak egy marad meg.
+```
+?- deletePredicate(sameSex,2).
+Predicate sameSex is deleted from model beatles.
+There are 192 worlds in model beatles.
+true .
+
+?- writeWorld(i4).
+index(i4): female=[john,ringo], male=[paul], younger=[[ringo,john],[ringo,paul],[paul,john]], boy=[john,ringo], beatles=[john,paul,ringo], 
+true .
+```
+
+### renamePredicate
+```
+renamePredicate(OldName,ArgNum,NewName)
+renamePredicate(OldName,NewName)
+```
+A `renamePredicate` segítségével egy predikátum nevét változtathatjuk meg. 
+Ha nincs megadva az argumentumszám, akkor a legutoljára bevezetett predikátum 
+kerül átnevezésre.  
+Az új predikátum argumentumszáma megegyezik az eredeti predikátum 
+argumentumszámával.  
+Az új predikátum denotátuma minden lehetséges világban ugyanaz lesz, mint az 
+eredeti predikátumé volt. 
+
+<a id="scope"></a>
 
 ### A hatókör megadása
 A predikátumok hatókörét megadhatjuk az összes argumentumra vonatkozóan, 
 vagy az argumentumokra külön-külön is. Ez utóbbi esetben megadhatjuk, hogy pl. 
-egy kétargumentumú predikátum első argumentuma az \[a,b,c\] halmaz elemei 
-közül, a második argumentuma viszont a \[c,d,e\] halmaz elemei közül 
+egy kétargumentumú predikátum első argumentuma az `[a,b,c]` halmaz elemei 
+közül, a második argumentuma viszont a `[c,d,e]` halmaz elemei közül 
 kerüljenek ki. Ha többargumentumú predikátum esetében csak egy hatókört 
 adunk meg, akkor az az összes argumentumra vonatkozik. Rendezések és 
 osztályozók esetén ugyanaz a hatóköre az összes argumentumnak. 
 
-A hatókör megadása lehet abszolút, vagyis minden indexre azonos, 
-vagy relatív, azaz indexről indexre változó. 
+A hatókör megadása lehet abszolút, vagyis minden világban azonos, 
+vagy relatív, azaz világról világra változó. 
 
 **Abszolút** hatókörmegadásnál 
 felsoroljuk a hatókört alkotó individuumokat: 
 ```
-addNewPredicate(model:beatles, see, 2, [[john,ringo],[paul,george]]).
+addNewPredicate(see, 2, [[john,ringo],[paul,george]]).
 ```
-Az első példában a *beatles* modellben bevezettük a *see* kétargumentumú 
+Az első példában az aktuális modellben bevezettük a *see* kétargumentumú 
 predikátumot, mégpedig úgy, hogy csak *john* és *ringo* láthatja *paul*-t 
 vagy *george*-ot. Itt a hatókört individuumhalmazok listájaként adtuk meg. 
 
 ```
-addNewPredicate(model:beatles, know, 2, [john,ringo]).
+addNewPredicate(know, 2, [john,ringo]).
 ```
 A második példában a *know* kétargumentumú predikátum mindkét argumentumára 
 ugyanaz a hatókör vonatkozik, ezt az individuumhalmaz egyszeri megadásával 
@@ -387,20 +551,20 @@ jeleztük.
 kifejezést adunk meg, amely minden interpretációs világban kiértékelésre 
 kerül, és a hatókört azok az individuumok alkotják, amelyekkel a szabad 
 változót értelmezve igazzá teszik a kifejezést. A relatív hatókört az 
-`l_x(X,Form)` formában adhatjuk meg, ahol *Form* egy szabad változót tartalmazó 
-logikai kifejezés, *X* pedig a benne található szabad változó. 
-Ez valójában egy *λx.φ(x)* formula megadását jelenti. 
+`l_x(X,Form)` vagy `X: Form` formában adhatjuk meg, ahol *Form* egy 
+szabad változót tartalmazó logikai kifejezés, *X* pedig a benne található 
+szabad változó. Ez valójában egy *λx.φ(x)* formula megadását jelenti. 
 
 ```
-addNewPredicate(model:people, bald, 1, l_x(Z, male(Z)))
+addNewPredicate(bald, 1, l_x(Z, male(Z)))
 ```
-A példában a *people* modellben vezettük be a *bald* 'kopasz' 
-egyargumentumú predikátumot, de az egyes interpretációs világokban csak 
+A példában a *bald* 'kopasz' egyargumentumú predikátumot vezettük be, 
+de az egyes interpretációs világokban csak 
 azok a *Z* individuumok lehettek kopaszak, amelyek a *male(Z)* kifejezést 
 igazzá teszik, vagyis a hímneműek.
 
 ```
-addNewPredicate(model:animals, chase, 2 [l_x(X, dog(X)), l_x(Y, cat(Y))])
+addNewPredicate(chase, 2 [X: dog(X), Y: cat(Y)])
 ```
 A példában bevezetett *chase* 'kerget' kétargumentumú predikátum 
 első argumentumai kutyák (*dog*), a második argumentumai pedig csak 
@@ -408,24 +572,25 @@ macskák (*cat*) lehetnek. A két hatóköri kifejezésben különböző
 változókat kell használni! 
 A logikai kifejezések lehetnek sokkal bonyolultabbak is.
 
+<a id="kiertekeles"></a>
+
 ## Logikai formula kiértékelése egy modellben
 ### eval
 ```
 eval(Form, I)
-eval(modelName, Form, I)
 ```
-Az aktuális modell vagy a *modelName* azonosítójú modell minden interpretációs 
+Az aktuális modell minden interpretációs 
 világában kiértékeli a *Form* logikai kifejezést, és amelyikben igaz, 
-azokat a világokat, indexeket visszaadja az *I* listában.
-Az *I* magát a tényleges háttér-reprezentációt tartalmazza, a kiíratását a 
-`writeWorld` paranccsal érdemes csinálni.
+azokat a világokat, indexeket visszaadja az *I* listában. 
+Az *I* magát a tényleges háttér-reprezentációt tartalmazza. Az indexek azonosítóit 
+a [`writeIndices`](#writeindices),  az egyes indexek tartalmát pedig a [`writeWorld`](#writeworld) 
+paranccsal érdemes kiíratni. 
 
 ### and
 ```
 and(Form)
-and(modelName, Form)
 ```
-Az aktuális modell vagy a *modelName* azonosítójú modell minden interpretációs 
+Az aktuális modell minden interpretációs 
 világában kiértékeli a *Form* logikai kifejezést, és amelyikben nem igaz, 
 azokat a világokat törli a modell interpretációs világai közül. 
 
@@ -433,9 +598,13 @@ Ezzel a paranccsal tudunk új információt adni a dinamikus modellnek. Az új
 információ megadásával csökkentjük a lehetséges világok számát, vagyis egyre 
 jobban leszűkítjük, hogy milyen lehet az információkkal leírt világ.
 
+### writeIndices
+
+<a id="logikai-kifejezesek"></a>
+
 ## Használható logikai kifejezések
 A program elsőrendű predikátumlogikai kifejezéseket tud értelmezni. 
-Az individuumokra nevekkel, változókkal vagy *iota* kifejezésekkel tudunk referálni. 
+Az individuumokra nevekkel, változókkal vagy *iota* operátoros kifejezésekkel tudunk referálni. 
 A változók nagy betűvel kezdődő, betűt, számot és aláhúzást tartalmazó kifejezések. 
 Az individuumokra referáló kifejezések a *Term*-ek. 
 A predikátumokból és a megfelelő számú *Term*-ből elemi állításokat hozhatunk 
@@ -451,65 +620,95 @@ A kvantorok is prefixáltak, a kvantor neve után zárójelben következnek a kv
 ### not
 ```
 not(Form)
+~ Form
 ```
-A *Form* kijelentés tagadása, pl.: `not(see(john,X))` 
-'John nem látja X-et'.
+A *Form* kijelentés tagadása, pl.: `not(see(john,X))`  vagy 
+`~ see(john,X)` 'John nem látja X-et'.  
+
+Az infix negációs műveleti jel (`~`) nem lehet közvetlenül szomszédos 
+(azaz szóköz nélkül) az infix `& | -> ~` műveleti jelekkel, illetve nem 
+követheti zárójel nélkül a `:` jelet (de zárójellel igen, pl. `all X: (~p(X))`)
 
 ### and
 ```
 and(Form1, Form2)
+Form1 & Form2
 ```
-*Form1* és *Form2* konjunkciója, pl.: `and(male(john), see(john,X))` 
-'John férfi és John látja X-et'.
+*Form1* és *Form2* konjunkciója, pl.: `and(male(john), see(john,X))` vagy 
+`male(john) & see(john,X)` 'John férfi és John látja X-et'.  
+
+A `& | ->` műveletek jobb-asszociatívak, azaz zárójelezés nélkül a jobb oldali 
+műveletek végződnek el először: a `(p & q | r -> p` kifejezés 
+`and(p, or(q, imp(r, p)))`-ként értelmeződik.
 
 ### or
 ```
 or(Form1,Form2)
+Form1 | Form2
 ```
-*Form1* és *Form2* diszjunkciója, pl.: `or(male(john), see(john,X))` 
-'John férfi vagy John látja X-et'. (megengedő vagy)
+*Form1* és *Form2* diszjunkciója, pl.: `or(male(john), see(john,X))` vagy 
+`male(john) | see(john,X)` 'John férfi vagy John látja X-et'. (megengedő vagy) 
+
+A `& | ->` műveletek jobb-asszociatívak, azaz zárójelezés nélkül a jobb oldali 
+műveletek végződnek el először: a `(p & q | r -> p` kifejezés 
+`and(p, or(q, imp(r, p)))`-ként értelmeződik.
 
 ### imp
 ```
 imp(Form1,Form2)
+Form1 -> Form2
 ```
-*Form1* és *Form2* kondicionálisa vagy implikációja, pl.: `imp(male(john), see(john,X))` 
-'ha John férfi, akkor John látja X-et'. 
+*Form1* és *Form2* kondicionálisa vagy implikációja, pl.: `imp(male(john), see(john,X))` vagy 
+`male(john) -> see(john,X)` 'ha John férfi, akkor John látja X-et'.
+
+A `& | ->` műveletek jobb-asszociatívak, azaz zárójelezés nélkül a jobb oldali 
+műveletek végződnek el először: a `(p & q | r -> p` kifejezés 
+`and(p, or(q, imp(r, p)))`-ként értelmeződik.
+
 
 ### all
 ```
 all(X,Form)
+all X: Form
 ```
 Univerzális kvantor, az *X* változót köti a *Form* kijelentésben 
 
-pl.: `all(X, imp(male(X), see(X,john)))` 
+pl.: `all(X, imp(male(X), see(X,john)))` vagy `all X: (male(X) -> see(X,john))` 
 'Minden férfi látja Johnt'. (∀x.(male(x) → see(x,John))) 
 
-A változó mindig nagy betűvel kezdődik.
+A változó mindig nagy betűvel kezdődik.  
+Az infix univerzális kvantor precedenciája nagyobb, mint a `& | ->` műveleteké, 
+vagyis a zárójel nélküli `all X: male(X) -> see(X,john)` kifejezésben a kvantor 
+csak a `male(X)` kifejezésben köti *X*-et, a `see(X,john)` kifejezésben nem.
 
 ### some
 ```
 some(X,Form)
+some X: Form
 ```
 Egzisztenciális kvantor, az *X* változót köti a *Form* kijelentésben 
 
-pl.: `some(X, and(male(X), see(X,john)))` 
+pl.: `some(X, and(male(X), see(X,john)))` vagy `some X: (male(X) & see(X,john))` 
 'Egy férfi látja Johnt'. (∃x.(male(x) & see(x,John))) 
 
-A változó mindig nagy betűvel kezdődik.
+A változó mindig nagy betűvel kezdődik.  
+Az infix egzisztenciális kvantor precedenciája nagyobb, mint a `& | ->` műveleteké, 
+vagyis a zárójel nélküli `some X: male(X) & see(X,john)` kifejezésben a kvantor 
+csak a `male(X)` kifejezésben köti *X*-et, a `see(X,john)` kifejezésben nem.
 
 ### eq
 ```
 eq(Term1, Term2)
+Term1 = Term2
 ```
 Kétargumentumú predikátum, akkor igaz, ha a két term ugyanarra 
-az individuumra referál.
-
-pl.: `eq(john, iota(X, singer(X)))` 'John az énekes'
+az individuumra referál. pl.: `eq(john, iota(X, singer(X)))` vagy 
+`john = iota X: singer(X)` 'John az énekes' 
 
 ### iota
 ```
 iota(X, Form)
+iota X: Form
 ```
 Arra az egyetlen individuumra utaló kifejezés (*Term*), amely *X*-ként 
 a *Form* kijelentést igazzá teszi: ióta operátor. 
@@ -523,7 +722,7 @@ az ilyen *Term*-et tartalmazó kijelentés hamis.
 A természetes nyelvi *a/az* határozott névelőnek felel meg: 
 `iota(X, singer(X))` 'az énekes'.
 
-
-```python
-
-```
+Az infix ióta operátor precedenciája nagyobb, mint a `& | ->` műveleteké, 
+vagyis a zárójel nélküli `iota X: male(X) & see(X,john)` (szándékolt jelentés: 
+'az a férfi, aki látja Johnt') kifejezésben az operátor 
+csak a `male(X)` kifejezésben köti *X*-et, a `see(X,john)` kifejezésben nem.
