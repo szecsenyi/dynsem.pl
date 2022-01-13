@@ -1,5 +1,5 @@
 # dynsem.pl
-v1.1 Szécsényi Tibor 2022
+v 1.1 Szécsényi Tibor 2022
 
 Dinamikus szemantikai modellek építése, amely modellek több 
 interpretációs világot tartalmaznak, és a diskurzus során 
@@ -9,6 +9,8 @@ az interpretációs világok halmazát.
 * [A program részei, futtatás](#a-program-reszei-futtatas)
 * [Dinamikus modellreprezentáció](#a-dinamikus-modellreprezentacio)
 * [A használható parancsok leírása](#a-hasznalhato-parancsok-leirasa)
+
+A program webes felületen keresztül is kipróbálható: http://cellsr.hung.u-szeged.hu/dynsem
 
 <a id="a-program-reszei-futtatas"></a>
 
