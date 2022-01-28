@@ -297,7 +297,7 @@ parancskombinációval.
 
 ### changeActualModel
 ```
-changeActuakModel(ModelName)
+changeActualModel(ModelName)
 ```
 
 Kijelöli az aktuális modellt.
